@@ -30,6 +30,7 @@ const SpinWheel = forwardRef<SpinWheelRef, SpinWheelProps>(({ items, onWin, onSp
   const spin = () => {
     if (isSpinning || items.length === 0) return;
     
+    // Cek apakah masih ada barang yang bisa dimenangkan
     const availableItems = items.filter(item => item.quantity > 0);
     if (availableItems.length === 0) {
       alert("Maaf, semua hadiah sudah habis!");
@@ -38,15 +39,21 @@ const SpinWheel = forwardRef<SpinWheelRef, SpinWheelProps>(({ items, onWin, onSp
 
     setIsSpinning(true);
 
-    let randomNum = Math.random() * 100; 
+    // LOGIKA AUTO-REROUTE: Hanya menghitung peluang dari item yang stoknya > 0
+    const totalAvailableWinRate = availableItems.reduce((sum, item) => sum + item.winRate, 0);
+    
+    let randomNum = Math.random() * totalAvailableWinRate; 
     let cumulativeRate = 0;
     let selectedWinnerIndex = 0;
 
     for (let i = 0; i < items.length; i++) {
-      cumulativeRate += items[i].winRate;
-      if (randomNum <= cumulativeRate && items[i].quantity > 0) {
-        selectedWinnerIndex = i;
-        break;
+      // Lewati (skip) item kalau stoknya sudah 0
+      if (items[i].quantity > 0) {
+        cumulativeRate += items[i].winRate;
+        if (randomNum <= cumulativeRate) {
+          selectedWinnerIndex = i; // Index ini tetap sinkron dengan urutan visual roda
+          break;
+        }
       }
     }
 
@@ -74,7 +81,6 @@ const SpinWheel = forwardRef<SpinWheelRef, SpinWheelProps>(({ items, onWin, onSp
     return `${item.color} ${startAngle}deg ${endAngle}deg`;
   }).join(', ');
 
-  // Perbaikan Ekstrem: Proporsi gambar dan teks dipaskan agar tidak menumpuk
   const itemCount = items.length;
   const imageSizeClass = 
     itemCount > 8 ? 'w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8' : 
@@ -104,7 +110,7 @@ const SpinWheel = forwardRef<SpinWheelRef, SpinWheelProps>(({ items, onWin, onSp
         <div className="w-0 h-0 border-l-[8px] sm:border-l-[10px] lg:border-l-[12px] border-l-transparent border-r-[8px] sm:border-r-[10px] lg:border-r-[12px] border-r-transparent border-t-[16px] sm:border-t-[20px] lg:border-t-[24px] border-t-indigo-500 -mt-1 sm:-mt-2 shadow-xl"></div>
       </div>
       
-      {/* Container Roda - Diperbesar jadi 320px, Donat tengah jadi 160px */}
+      {/* Container Roda */}
       <div className="relative w-[320px] h-[320px] sm:w-[450px] sm:h-[450px] md:w-[550px] md:h-[550px] lg:w-[650px] lg:h-[650px] rounded-full shadow-[0_0_60px_rgba(0,0,0,0.6)] flex items-center justify-center bg-[#1e293b] ring-[8px] sm:ring-[12px] ring-slate-800/80">
         
         <motion.div 
@@ -122,10 +128,8 @@ const SpinWheel = forwardRef<SpinWheelRef, SpinWheelProps>(({ items, onWin, onSp
                 className={`absolute top-0 left-1/2 ${containerWidthClass} h-1/2 origin-bottom z-10`}
                 style={{ transform: `translateX(-50%) rotate(${sliceCenterAngle}deg)` }}
               >
-                {/* WRAPPER BARU: justify-start agar menempel di cincin luar (bukan menumpuk di tengah) */}
                 <div className="w-full h-[80px] sm:h-[105px] md:h-[125px] lg:h-[145px] flex flex-col items-center justify-start pt-1.5 sm:pt-3 lg:pt-4 px-1">
                   
-                  {/* Gambar Hadiah */}
                   {item.imageUrl ? (
                       <img src={item.imageUrl} alt={item.name} className={`${imageSizeClass} object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]`} />
                   ) : (
@@ -139,9 +143,7 @@ const SpinWheel = forwardRef<SpinWheelRef, SpinWheelProps>(({ items, onWin, onSp
                     <h3 className={`text-white font-black ${textSizeClass} leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,1)] line-clamp-2`}>
                       {item.name}
                     </h3>
-                    <p className="text-[5px] sm:text-[7px] md:text-[8px] font-bold text-indigo-300 drop-shadow-md tracking-wider mt-0.5 bg-black/40 rounded px-1 py-[2px] inline-block">
-                      {item.winRate}%
-                    </p>
+                    {/* Teks persentase drop rate sengaja dihapus di sini */}
                   </div>
 
                 </div>

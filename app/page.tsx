@@ -127,7 +127,7 @@ export default function Home() {
              <img src="/logo.png" alt="Logo" className="relative h-9 w-9 sm:h-11 sm:w-11 bg-slate-900 rounded-full p-1.5 border border-slate-700 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
           </div>
           <div>
-            <h1 className="text-base sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white flex items-center gap-1 sm:gap-2">MySehati Spin</h1>
+            <h1 className="text-base sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white flex items-center gap-1 sm:gap-2">MySehati Spin Wheel</h1>
             <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-indigo-400 font-medium">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
@@ -226,10 +226,13 @@ export default function Home() {
                    <div className="absolute inset-0 bg-white/5 rounded-full blur-md group-hover:bg-white/10 transition-colors" style={{ backgroundColor: item.color + '40' }}></div>
                    {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="relative z-10 w-8 h-8 sm:w-12 sm:h-12 object-contain drop-shadow-xl group-hover:scale-110 transition-transform" /> : <Gift className="relative z-10 text-slate-500 w-6 h-6 sm:w-8 sm:h-8" />}
                 </div>
-                <h3 className="text-[10px] sm:text-sm font-bold text-center text-slate-200 leading-tight mb-1 truncate w-full">{item.name}</h3>
-                <div className="flex flex-col items-center gap-0.5 sm:gap-1 w-full mt-auto">
-                   <div className="text-[8px] sm:text-[10px] uppercase font-semibold tracking-wider text-slate-500 bg-slate-900/50 px-1.5 sm:px-2 py-0.5 rounded-md">Drop: {item.winRate}%</div>
-                   <div className="text-[9px] sm:text-xs font-medium text-slate-400 flex items-center gap-1">Sisa: <span className="text-white">{item.quantity}</span></div>
+                <h3 className="text-[10px] sm:text-sm font-bold text-center text-slate-200 leading-tight mb-2 truncate w-full">{item.name}</h3>
+                
+                {/* DROP RATE DIHILANGKAN, DIGANTI JADI TAG EKSKLUSIF */}
+                <div className="flex flex-col items-center w-full mt-auto mb-1">
+                   <div className="text-[8px] sm:text-[10px] uppercase font-bold tracking-widest text-indigo-200 bg-indigo-900/60 px-3 py-1 rounded-md border border-indigo-500/40 shadow-sm">
+                     🎁 Reward
+                   </div>
                 </div>
               </div>
             ))}

@@ -4,10 +4,10 @@
 import { useEffect, useState, useRef } from "react";
 import { Prize, SpinProgram } from "../../src/types";
 import { db, storage } from "../../src/lib/firebase"; 
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where } from "firebase/firestore";
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, writeBatch } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import Link from "next/link";
-import { ArrowLeft, Trash2, Plus, Image as ImageIcon, Settings, AlertCircle, Save, FolderPlus, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, Trash2, Plus, Image as ImageIcon, Settings, AlertCircle, Save, FolderPlus, CheckCircle, Loader2, Info } from "lucide-react";
 
 export default function AdminPage() {
   const [mounted, setMounted] = useState(false);
@@ -24,8 +24,8 @@ export default function AdminPage() {
   // State Form Input Item
   const [name, setName] = useState("");
   const [color, setColor] = useState("#4f46e5");
-  const [quantity, setQuantity] = useState<number>(10);
-  const [winRate, setWinRate] = useState<number>(25);
+  const [quantity, setQuantity] = useState<number | string>(""); // Diubah biar bisa kosong tanpa "0"
+  const [winRate, setWinRate] = useState<number | string>(""); // Diubah biar bisa kosong tanpa "0"
   
   // State Upload Gambar
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -47,11 +47,23 @@ export default function AdminPage() {
       querySnapshot.forEach((doc) => {
         programList.push({ id: doc.id, ...doc.data() } as SpinProgram);
       });
+      
+      // Urutkan dari yang terbaru dibuat (opsional, biar rapi)
+      programList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
       setPrograms(programList);
       
       if (programList.length > 0) {
-        setSelectedProgramId(programList[0].id);
-        fetchItemsByProgram(programList[0].id);
+        // Kalau selectedProgramId kosong atau program yang dipilih udah dihapus, pilih yang pertama
+        if (!selectedProgramId || !programList.find(p => p.id === selectedProgramId)) {
+          setSelectedProgramId(programList[0].id);
+          fetchItemsByProgram(programList[0].id);
+        } else {
+          fetchItemsByProgram(selectedProgramId);
+        }
+      } else {
+        setSelectedProgramId("");
+        setItems([]);
       }
     } catch (error) {
       console.error("Error fetching programs:", error);
@@ -62,6 +74,7 @@ export default function AdminPage() {
   };
 
   const fetchItemsByProgram = async (programId: string) => {
+    if (!programId) return;
     setIsLoading(true);
     try {
       const q = query(collection(db, "spin_prizes"), where("programId", "==", programId));
@@ -100,8 +113,8 @@ export default function AdminPage() {
       
       setNewProgramName("");
       alert("Program berhasil dibuat!");
+      setSelectedProgramId(docRef.id);
       await fetchPrograms(); 
-      setSelectedProgramId(docRef.id); 
     } catch (error) {
       console.error("Error creating program:", error);
       alert("Gagal membuat program.");
@@ -111,6 +124,11 @@ export default function AdminPage() {
   };
 
   const handleSetActiveProgram = async (programId: string) => {
+    if (items.length < 3) {
+      alert("Gagal! Program harus memiliki minimal 3 item hadiah untuk bisa diaktifkan.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       for (const prog of programs) {
@@ -123,6 +141,47 @@ export default function AdminPage() {
       console.error("Error setting active program:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // LOGIKA BARU: Hapus Program dan SEMUA Item di dalamnya
+  const handleDeleteProgram = async (programId: string, programName: string, isActive: boolean) => {
+    if (isActive) {
+      alert("Gagal! Program yang sedang Aktif (Live) tidak boleh dihapus. Ganti dulu program aktif ke yang lain.");
+      return;
+    }
+
+    if (confirm(`PERINGATAN!\n\nApakah Anda yakin ingin menghapus program "${programName}"?\n\nSemua hadiah di dalamnya juga akan ikut TERHAPUS PERMANEN.`)) {
+      setIsLoading(true);
+      try {
+        // 1. Cari semua item yang terkait dengan program ini
+        const q = query(collection(db, "spin_prizes"), where("programId", "==", programId));
+        const querySnapshot = await getDocs(q);
+        
+        // 2. Gunakan batch untuk menghapus banyak dokumen sekaligus agar efisien
+        const batch = writeBatch(db);
+        
+        // Tambahkan perintah hapus setiap item ke dalam batch
+        querySnapshot.forEach((document) => {
+          batch.delete(doc(db, "spin_prizes", document.id));
+        });
+        
+        // Tambahkan perintah hapus program utamanya ke dalam batch
+        batch.delete(doc(db, "spin_programs", programId));
+        
+        // 3. Eksekusi semua perintah hapus sekaligus
+        await batch.commit();
+        
+        alert("Program dan seluruh hadiah di dalamnya berhasil dihapus.");
+        
+        // Refresh halaman
+        await fetchPrograms();
+      } catch (error) {
+        console.error("Error deleting program:", error);
+        alert("Gagal menghapus program.");
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -140,10 +199,30 @@ export default function AdminPage() {
     }
   };
 
+  // LOGIKA BARU: Handle Input Angka Tanpa Nol di Depan
+  const handleNumberInput = (setter: React.Dispatch<React.SetStateAction<number | string>>, value: string) => {
+    if (value === "") {
+      setter(""); // Biarkan kosong kalau dihapus semua
+    } else {
+      const parsed = parseInt(value, 10);
+      if (!isNaN(parsed)) setter(parsed); // Parse ke number supaya nol di depan hilang
+    }
+  };
+
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !selectedProgramId) {
       alert("Pilih program dan isi nama hadiah!");
+      return;
+    }
+    
+    if (quantity === "" || winRate === "") {
+      alert("Jumlah stok dan peluang keluar harus diisi!");
+      return;
+    }
+
+    if (items.length >= 10) {
+      alert("Batas Maksimal! Satu program hanya boleh memiliki maksimal 10 slot hadiah.");
       return;
     }
 
@@ -162,8 +241,8 @@ export default function AdminPage() {
       const newItemData = {
         name,
         color,
-        quantity,
-        winRate,
+        quantity: Number(quantity),
+        winRate: Number(winRate),
         imageUrl: finalImageUrl,
         programId: selectedProgramId 
       };
@@ -171,6 +250,8 @@ export default function AdminPage() {
       await addDoc(collection(db, "spin_prizes"), newItemData);
 
       setName("");
+      setQuantity("");
+      setWinRate("");
       setImageFile(null);
       setImagePreview("");
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -269,7 +350,7 @@ export default function AdminPage() {
             </div>
 
             {/* Daftar Program */}
-            <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl max-h-[350px] sm:max-h-[400px] overflow-y-auto">
+            <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-700/50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl max-h-[450px] overflow-y-auto">
               <h2 className="text-base sm:text-lg font-bold text-white mb-3 sm:mb-4 border-b border-slate-700 pb-2">Pilih Program</h2>
               {programs.length === 0 ? (
                 <p className="text-slate-500 text-xs sm:text-sm">Belum ada program. Buat di atas.</p>
@@ -281,22 +362,41 @@ export default function AdminPage() {
                       onClick={() => setSelectedProgramId(prog.id)}
                       className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl cursor-pointer border transition-all ${selectedProgramId === prog.id ? 'bg-indigo-600/20 border-indigo-500' : 'bg-slate-800 border-slate-700 hover:bg-slate-700'}`}
                     >
-                      <div className="flex justify-between items-start mb-2">
+                      <div className="flex justify-between items-start mb-2 gap-2">
                         <h3 className="font-bold text-white text-sm sm:text-base break-all pr-2">{prog.name}</h3>
-                        {prog.isActive && (
-                          <span title="Aktif di Halaman Depan" className="flex-shrink-0 mt-0.5">
-                            <CheckCircle size={14} className="text-emerald-400 sm:w-4 sm:h-4" />
-                          </span>
-                        )}
+                        <div className="flex items-center gap-3 mt-0.5 flex-shrink-0">
+                          {prog.isActive && (
+                            <span title="Aktif di Halaman Depan">
+                              <CheckCircle size={14} className="text-emerald-400 sm:w-4 sm:h-4" />
+                            </span>
+                          )}
+                          {/* TOMBOL HAPUS PROGRAM */}
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleDeleteProgram(prog.id, prog.name, prog.isActive); }}
+                            className="text-slate-500 hover:text-rose-400 transition-colors"
+                            title="Hapus Program"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </div>
                       
                       {!prog.isActive && selectedProgramId === prog.id && (
-                         <button 
-                            onClick={(e) => { e.stopPropagation(); handleSetActiveProgram(prog.id); }}
-                            className="text-[10px] sm:text-xs bg-slate-900 hover:bg-emerald-600 border border-slate-600 hover:border-emerald-500 text-slate-300 hover:text-white px-2 py-1.5 sm:px-3 sm:py-1.5 rounded-lg transition-all w-full mt-2"
-                          >
-                            Set Jadikan Aktif (Live)
-                         </button>
+                        <div className="mt-2 pt-2 border-t border-slate-700/50">
+                           {items.length < 3 && (
+                             <div className="flex items-start gap-1 mb-2 text-rose-400">
+                               <Info size={12} className="mt-0.5 flex-shrink-0" />
+                               <p className="text-[9px] sm:text-[10px] leading-tight">Minimal tambah 3 item hadiah untuk mengaktifkan program ini.</p>
+                             </div>
+                           )}
+                           <button 
+                              onClick={(e) => { e.stopPropagation(); handleSetActiveProgram(prog.id); }}
+                              disabled={items.length < 3}
+                              className={`text-[10px] sm:text-xs px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg transition-all w-full font-medium tracking-wide ${items.length < 3 ? 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed' : 'bg-slate-900 hover:bg-emerald-600 border border-slate-600 hover:border-emerald-500 text-slate-300 hover:text-white shadow-lg'}`}
+                            >
+                              Set Jadikan Aktif (Live)
+                           </button>
+                        </div>
                       )}
                     </div>
                   ))}
@@ -329,6 +429,12 @@ export default function AdminPage() {
               <h2 className="text-base sm:text-lg font-bold text-white mb-4 sm:mb-6 flex items-center gap-2">
                 <Plus size={18} className="text-indigo-400 sm:w-5 sm:h-5" /> 
                 {selectedProgramId ? "Tambah Hadiah" : "Pilih Program!"}
+                {/* Indikator Jumlah Item */}
+                {selectedProgramId && (
+                  <span className={`text-xs sm:text-sm font-medium ml-auto px-2 py-1 rounded-lg ${items.length >= 10 ? 'bg-rose-500/20 text-rose-400' : 'bg-slate-800 text-slate-400'}`}>
+                    ({items.length}/10 Slot)
+                  </span>
+                )}
               </h2>
 
               <form onSubmit={handleAddItem} className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
@@ -349,7 +455,8 @@ export default function AdminPage() {
                         accept="image/*"
                         ref={fileInputRef}
                         onChange={handleImageChange}
-                        className="block w-full text-xs sm:text-sm text-slate-400 file:mr-2 sm:file:mr-4 file:py-1.5 sm:file:py-2 file:px-3 sm:file:px-4 file:rounded-full file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-indigo-600/20 file:text-indigo-300 hover:file:bg-indigo-600/40 cursor-pointer"
+                        disabled={items.length >= 10}
+                        className="block w-full text-xs sm:text-sm text-slate-400 file:mr-2 sm:file:mr-4 file:py-1.5 sm:file:py-2 file:px-3 sm:file:px-4 file:rounded-full file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-indigo-600/20 file:text-indigo-300 hover:file:bg-indigo-600/40 cursor-pointer disabled:opacity-50"
                       />
                       <p className="text-[9px] sm:text-[10px] text-slate-500 mt-1 sm:mt-1.5">Disarankan PNG transparan.</p>
                    </div>
@@ -357,29 +464,34 @@ export default function AdminPage() {
 
                 <div>
                   <label className="block text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">Nama Hadiah</label>
-                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full bg-slate-800/80 border border-slate-600 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base text-white focus:ring-2 focus:ring-indigo-500 outline-none" />
+                  <input type="text" value={name} onChange={(e) => setName(e.target.value)} required disabled={items.length >= 10} className="w-full bg-slate-800/80 border border-slate-600 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base text-white focus:ring-2 focus:ring-indigo-500 outline-none disabled:opacity-50" />
                 </div>
                 
                 <div>
                   <label className="block text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">Warna Slot</label>
                   <div className="relative w-full h-[42px] sm:h-[46px] rounded-xl overflow-hidden border border-slate-600">
-                    <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="absolute -top-2 -left-2 w-[120%] h-[120%] cursor-pointer" />
+                    <input type="color" value={color} onChange={(e) => setColor(e.target.value)} disabled={items.length >= 10} className="absolute -top-2 -left-2 w-[120%] h-[120%] cursor-pointer disabled:opacity-50" />
                   </div>
                 </div>
                 
                 <div>
                   <label className="block text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">Jumlah Stok</label>
-                  <input type="number" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} required min="0" className="w-full bg-slate-800/80 border border-slate-600 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base text-white focus:ring-2 focus:ring-indigo-500 outline-none" />
+                  <input type="number" value={quantity} onChange={(e) => handleNumberInput(setQuantity, e.target.value)} required min="0" disabled={items.length >= 10} className="w-full bg-slate-800/80 border border-slate-600 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base text-white focus:ring-2 focus:ring-indigo-500 outline-none disabled:opacity-50" />
                 </div>
                 
                 <div>
                   <label className="block text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">Peluang Keluar (%)</label>
-                  <input type="number" value={winRate} onChange={(e) => setWinRate(Number(e.target.value))} required min="0" max="100" className="w-full bg-slate-800/80 border border-slate-600 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base text-white focus:ring-2 focus:ring-indigo-500 outline-none" />
+                  <input type="number" value={winRate} onChange={(e) => handleNumberInput(setWinRate, e.target.value)} required min="0" max="100" disabled={items.length >= 10} className="w-full bg-slate-800/80 border border-slate-600 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 text-sm sm:text-base text-white focus:ring-2 focus:ring-indigo-500 outline-none disabled:opacity-50" />
                 </div>
 
                 <div className="md:col-span-2 flex justify-end mt-2 sm:mt-4">
-                  <button type="submit" className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 sm:px-8 sm:py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 shadow-lg text-sm sm:text-base">
-                    <Save size={16} className="sm:w-[18px] sm:h-[18px]" /> Simpan ke Cloud
+                  <button 
+                    type="submit" 
+                    disabled={items.length >= 10} 
+                    className={`w-full sm:w-auto text-white px-6 py-3 sm:px-8 sm:py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 shadow-lg text-sm sm:text-base transition-all ${items.length >= 10 ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500'}`}
+                  >
+                    <Save size={16} className="sm:w-[18px] sm:h-[18px]" /> 
+                    {items.length >= 10 ? 'Slot Maksimal (10/10)' : 'Simpan ke Cloud'}
                   </button>
                 </div>
               </form>
@@ -387,7 +499,7 @@ export default function AdminPage() {
 
             {/* Inventory Roda */}
             <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4 flex items-center gap-2 border-b border-slate-700 pb-2">
-              Isi Roda <span className="text-slate-500 text-xs sm:text-sm font-normal">({items.length} Item)</span>
+              Isi Roda <span className={`text-xs sm:text-sm font-medium ${items.length < 3 ? 'text-rose-400' : 'text-slate-400'}`}>({items.length}/10 Item)</span>
             </h2>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -413,7 +525,7 @@ export default function AdminPage() {
               
               {items.length === 0 && (
                  <div className="col-span-full py-6 sm:py-8 text-center text-slate-500 text-xs sm:text-sm bg-slate-900/20 rounded-xl sm:rounded-2xl border border-dashed border-slate-700">
-                   Pilih program dan tambahkan item untuk melihat inventory.
+                   Pilih program dan tambahkan minimal 3 item untuk mengaktifkan roda.
                  </div>
               )}
             </div>
