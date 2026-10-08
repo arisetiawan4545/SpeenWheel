@@ -237,7 +237,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* LIVE FEED PEMENANG */}
+       {/* LIVE FEED PEMENANG */}
         <div className="w-full mt-4">
           <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6">
             <div className="h-px bg-gradient-to-r from-transparent to-slate-700 flex-1 max-w-[80px] sm:max-w-[100px]"></div>
@@ -246,7 +246,8 @@ export default function Home() {
             <div className="h-px bg-gradient-to-l from-transparent to-slate-700 flex-1 max-w-[80px] sm:max-w-[100px]"></div>
           </div>
 
-          <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-6 pt-2 scrollbar-hide px-1 md:justify-center snap-x snap-mandatory">
+          {/* PERUBAHAN DI SINI: flex-wrap dan justify-center agar posisi selalu di tengah */}
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4 pb-6 pt-2 px-1">
             {history.length === 0 ? (
               <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl px-6 py-5 sm:px-8 sm:py-6 text-center w-full max-w-sm mx-auto">
                  <History size={20} className="mx-auto text-slate-600 mb-2 sm:w-6 sm:h-6" />
@@ -254,11 +255,11 @@ export default function Home() {
               </div>
             ) : (
               history.map((h, i) => (
-                  <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} key={h.id || i} className="snap-center flex-shrink-0 bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-md border border-slate-700/50 hover:border-slate-500 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 sm:gap-4 w-56 sm:w-64 shadow-lg group transition-colors">
+                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }} key={h.id || i} className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-md border border-slate-700/50 hover:border-slate-500 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 sm:gap-4 w-full max-w-[280px] sm:max-w-[320px] shadow-lg group transition-colors">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center p-1.5 sm:p-2 relative overflow-hidden flex-shrink-0">
                        <Gift className="relative z-10 text-indigo-400 w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
-                    <div className="overflow-hidden flex-1 min-w-0">
+                    <div className="overflow-hidden flex-1 min-w-0 text-left">
                       <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold mb-0.5 uppercase tracking-widest truncate">{h.player?.name || 'Seseorang'}</p>
                       <p className="text-white font-bold text-xs sm:text-sm truncate leading-tight">{h.prizeName}</p>
                       <p className="text-[8px] sm:text-[9px] text-slate-500 mt-0.5 sm:mt-1 truncate">di {h.programName}</p>
