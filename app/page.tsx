@@ -7,12 +7,13 @@ import PrizeModal from "../src/components/PrizeModal";
 import { Prize, SpinProgram, SpinHistory, Player } from "../src/types";
 import { db } from "../src/lib/firebase"; 
 import { collection, getDocs, addDoc, doc, updateDoc, increment, query, where, orderBy, limit } from "firebase/firestore";
-import Link from "next/link";
-import { Settings, History, Gift, Sparkles, Zap, User, Phone, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Settings, History, Gift, Sparkles, Zap, User, Phone, ChevronDown, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
+  const router = useRouter(); // Tambahan untuk navigasi
   
   // Data State
   const [programs, setPrograms] = useState<SpinProgram[]>([]);
@@ -25,10 +26,16 @@ export default function Home() {
   const [showPlayerForm, setShowPlayerForm] = useState(false);
   const [player, setPlayer] = useState<Player>({ name: "", whatsapp: "" });
   
+  // Admin Login State
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [adminName, setAdminName] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
   // Referensi ke Komponen Roda
   const wheelRef = useRef<SpinWheelRef>(null);
 
-  // 1. Ambil Daftar Program & Riwayat
   useEffect(() => {
     setMounted(true);
     const loadInitialData = async () => {
@@ -42,7 +49,6 @@ export default function Home() {
         const histQuery = query(collection(db, "spin_history"), orderBy("spinDate", "desc"), limit(10));
         const histSnap = await getDocs(histQuery);
         setHistory(histSnap.docs.map(d => ({id: d.id, ...d.data()} as SpinHistory)));
-
       } catch (error) {
         console.error("Gagal memuat data dari Firebase:", error);
       }
@@ -50,7 +56,6 @@ export default function Home() {
     loadInitialData();
   }, []);
 
-  // 2. Ambil Item Hadiah jika program berubah
   useEffect(() => {
     if (!selectedProgramId) return;
     const loadItems = async () => {
@@ -65,13 +70,11 @@ export default function Home() {
     loadItems();
   }, [selectedProgramId]);
 
-  // 3. User Klik "Putar Sekarang" -> Munculkan Form
   const handleSpinRequest = () => {
     if(items.length === 0) return alert("Belum ada hadiah di program ini!");
     setShowPlayerForm(true);
   };
 
-  // 4. User Submit Form -> Roda Mulai Berputar
   const submitPlayerForm = (e: React.FormEvent) => {
     e.preventDefault();
     if (!player.name || !player.whatsapp) return;
@@ -80,7 +83,6 @@ export default function Home() {
     wheelRef.current?.startSpin(); 
   };
 
-  // 5. Roda Selesai Berputar (Menang)
   const handleWin = async (prize: Prize) => {
     const prog = programs.find(p => p.id === selectedProgramId);
     
@@ -95,19 +97,42 @@ export default function Home() {
 
     try {
       const docRef = await addDoc(collection(db, "spin_history"), newHistory);
-      
       const prizeRef = doc(db, "spin_prizes", prize.id);
       await updateDoc(prizeRef, { quantity: increment(-1) });
       
       setHistory([ { ...newHistory, id: docRef.id }, ...history ].slice(0, 10));
       setItems(items.map(item => item.id === prize.id ? { ...item, quantity: item.quantity - 1 } : item));
-      
     } catch (e) {
       console.error("Gagal menyimpan riwayat:", e);
     }
 
     setWinnerPrize(prize); 
     setPlayer({ name: "", whatsapp: "" }); 
+  };
+
+  // FUNGSI LOGIN ADMIN
+  const handleAdminAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError("");
+    setIsLoggingIn(true);
+
+    try {
+      const q = query(collection(db, "adminspeenwheel"), where("nama", "==", adminName), where("password", "==", adminPassword));
+      const snap = await getDocs(q);
+      
+      if (!snap.empty) {
+        // Berhasil login
+        sessionStorage.setItem("isAdmin", "true"); // Simpan sesi di browser
+        router.push("/admin"); // Pindah ke halaman admin
+      } else {
+        setLoginError("Nama atau Password salah!");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setLoginError("Koneksi gagal, coba lagi.");
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
   if (!mounted) return null;
@@ -138,9 +163,11 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <Link href="/admin" className="text-slate-300 hover:text-white flex items-center gap-2 bg-slate-800/50 hover:bg-slate-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-slate-700 transition-all shadow-sm">
+        
+        {/* TOMBOL ADMIN DIUBAH MENJADI TOMBOL POP-UP */}
+        <button onClick={() => setShowAdminLogin(true)} className="text-slate-300 hover:text-white flex items-center gap-2 bg-slate-800/50 hover:bg-slate-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-slate-700 transition-all shadow-sm">
           <Settings size={14} className="sm:w-[16px] sm:h-[16px]" /> <span className="text-xs sm:text-sm font-medium">Admin</span>
-        </Link>
+        </button>
       </header>
 
       <div className="flex-1 flex flex-col items-center z-10 w-full max-w-6xl mx-auto px-2 sm:px-4 py-6 sm:py-8">
@@ -169,6 +196,48 @@ export default function Home() {
         <div className="mb-10 sm:mb-16 relative w-full flex justify-center mt-4">
           <SpinWheel ref={wheelRef} items={items} onSpinClick={handleSpinRequest} onWin={handleWin} />
         </div>
+
+        {/* POPUP LOGIN ADMIN */}
+        {showAdminLogin && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="bg-slate-900 border border-rose-500/50 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl w-full max-w-sm shadow-[0_0_50px_rgba(244,63,94,0.2)] relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-rose-500/10 blur-2xl sm:blur-3xl rounded-full"></div>
+              
+              <h3 className="text-xl sm:text-2xl font-black text-white mb-1 sm:mb-2 relative z-10 flex items-center gap-2">
+                <Lock size={24} className="text-rose-500" /> Area Terlarang
+              </h3>
+              <p className="text-slate-400 text-[10px] sm:text-xs md:text-sm mb-5 sm:mb-6 relative z-10 leading-tight">Hanya admin yang memiliki akses ke halaman ini.</p>
+              
+              {loginError && (
+                <div className="mb-4 bg-rose-500/10 border border-rose-500/50 text-rose-400 text-xs p-3 rounded-lg text-center font-bold">
+                  {loginError}
+                </div>
+              )}
+
+              <form onSubmit={handleAdminAuth} className="relative z-10">
+                <div className="mb-3 sm:mb-4">
+                  <label className="block text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">Nama Admin</label>
+                  <input type="text" required value={adminName} onChange={e => setAdminName(e.target.value)} className="bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 outline-none text-white w-full text-xs sm:text-sm placeholder-slate-500 font-medium focus:border-rose-500 transition-colors" placeholder="Masukkan nama" />
+                </div>
+                <div className="mb-6 sm:mb-8">
+                  <label className="block text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">Password</label>
+                  <input type="password" required value={adminPassword} onChange={e => setAdminPassword(e.target.value)} className="bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 outline-none text-white w-full text-xs sm:text-sm placeholder-slate-500 font-medium focus:border-rose-500 transition-colors" placeholder="••••••••" />
+                </div>
+                
+                <div className="flex gap-2 sm:gap-3">
+                   <button type="button" onClick={() => {setShowAdminLogin(false); setLoginError("");}} className="flex-1 py-2.5 sm:py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl font-bold text-xs sm:text-sm transition-all border border-slate-700">Batal</button>
+                   <button type="submit" disabled={isLoggingIn} className="flex-1 py-2.5 sm:py-3.5 bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white rounded-xl font-bold text-xs sm:text-sm transition-all shadow-lg active:scale-95 uppercase tracking-wider disabled:opacity-50">
+                     {isLoggingIn ? "Cek..." : "Masuk"}
+                   </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
 
         {/* MODAL REGISTRASI NAMA & WA */}
         {showPlayerForm && (
@@ -228,10 +297,9 @@ export default function Home() {
                 </div>
                 <h3 className="text-[10px] sm:text-sm font-bold text-center text-slate-200 leading-tight mb-2 truncate w-full">{item.name}</h3>
                 
-                {/* DROP RATE DIHILANGKAN, DIGANTI JADI TAG EKSKLUSIF */}
                 <div className="flex flex-col items-center w-full mt-auto mb-1">
                    <div className="text-[8px] sm:text-[10px] uppercase font-bold tracking-widest text-indigo-200 bg-indigo-900/60 px-3 py-1 rounded-md border border-indigo-500/40 shadow-sm">
-                     🎁 Reward
+                     🎁 REWARD
                    </div>
                 </div>
               </div>
@@ -240,7 +308,7 @@ export default function Home() {
           </div>
         </div>
 
-       {/* LIVE FEED PEMENANG */}
+        {/* LIVE FEED PEMENANG */}
         <div className="w-full mt-4">
           <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6">
             <div className="h-px bg-gradient-to-r from-transparent to-slate-700 flex-1 max-w-[80px] sm:max-w-[100px]"></div>
@@ -249,7 +317,6 @@ export default function Home() {
             <div className="h-px bg-gradient-to-l from-transparent to-slate-700 flex-1 max-w-[80px] sm:max-w-[100px]"></div>
           </div>
 
-          {/* PERUBAHAN DI SINI: flex-wrap dan justify-center agar posisi selalu di tengah */}
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4 pb-6 pt-2 px-1">
             {history.length === 0 ? (
               <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl px-6 py-5 sm:px-8 sm:py-6 text-center w-full max-w-sm mx-auto">
