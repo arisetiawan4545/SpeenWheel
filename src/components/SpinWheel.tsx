@@ -5,7 +5,7 @@ import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Prize } from '../types';
-import { Hexagon } from 'lucide-react';
+import { Play } from 'lucide-react';
 
 export interface SpinWheelRef {
   startSpin: () => void;
@@ -80,20 +80,23 @@ const SpinWheel = forwardRef<SpinWheelRef, SpinWheelProps>(({ items, onWin, onSp
 
   const itemCount = items.length;
   
+  // Ukuran gambar diperbesar karena sekarang punya ruang kosong di tengah
   const imageSizeClass = 
-    itemCount > 8 ? 'w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12' : 
-    itemCount > 5 ? 'w-8 h-8 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16' : 
-    'w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20';
+    itemCount > 8 ? 'w-8 h-8 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16' : 
+    itemCount > 5 ? 'w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24' : 
+    'w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32';
 
+  // Ukuran teks sedikit diperbesar karena melingkar di luar
   const textSizeClass = 
-    itemCount > 8 ? 'text-[7px] sm:text-[9px] md:text-[11px] lg:text-xs' : 
-    itemCount > 5 ? 'text-[9px] sm:text-[11px] md:text-sm lg:text-base' : 
-    'text-[11px] sm:text-xs md:text-base lg:text-lg';
+    itemCount > 8 ? 'text-[8px] sm:text-[10px] md:text-xs lg:text-sm' : 
+    itemCount > 5 ? 'text-[10px] sm:text-xs md:text-sm lg:text-base' : 
+    'text-xs sm:text-sm md:text-lg lg:text-xl';
 
+  // Lebar kontainer dibuat lebih besar agar teks melingkar tidak terpotong
   const containerWidthClass = 
-    itemCount > 8 ? 'w-14 sm:w-20 md:w-24' : 
-    itemCount > 5 ? 'w-20 sm:w-28 md:w-32' : 
-    'w-28 sm:w-36 md:w-44';
+    itemCount > 8 ? 'w-20 sm:w-28 md:w-36' : 
+    itemCount > 5 ? 'w-28 sm:w-40 md:w-48' : 
+    'w-40 sm:w-56 md:w-72';
 
   if (items.length === 0) {
     return <div className="text-white text-center p-4">Silakan pilih program dan tambahkan hadiah.</div>;
@@ -111,7 +114,7 @@ const SpinWheel = forwardRef<SpinWheelRef, SpinWheelProps>(({ items, onWin, onSp
       {/* Rangka Utama */}
       <div className="relative w-[320px] h-[320px] sm:w-[450px] sm:h-[450px] md:w-[550px] md:h-[550px] lg:w-[650px] lg:h-[650px] flex items-center justify-center">
         
-        {/* 3D Outer Rim dgn Lampu Titik (Bagian Pinggir Statis) */}
+        {/* 3D Outer Rim dgn Lampu Titik */}
         <div className="absolute inset-[-16px] sm:inset-[-24px] md:inset-[-30px] rounded-full bg-gradient-to-br from-red-900 via-red-950 to-black border-[4px] sm:border-[6px] border-red-700 shadow-[0_20px_50px_rgba(225,29,72,0.5),inset_0_5px_15px_rgba(255,255,255,0.2),inset_0_-5px_15px_rgba(0,0,0,0.8)] z-0 flex items-center justify-center">
           {Array.from({ length: 24 }).map((_, i) => (
             <div
@@ -152,7 +155,7 @@ const SpinWheel = forwardRef<SpinWheelRef, SpinWheelProps>(({ items, onWin, onSp
             </div>
           ))}
 
-          {/* Render Slot/Hadiah */}
+          {/* Render Slot/Hadiah (Teks di Pinggir, Gambar di Tengah) */}
           {items.map((item, index) => {
             const sliceCenterAngle = (360 / items.length) * index + (360 / items.length) / 2;
             
@@ -162,21 +165,29 @@ const SpinWheel = forwardRef<SpinWheelRef, SpinWheelProps>(({ items, onWin, onSp
                 className={`absolute top-0 left-1/2 ${containerWidthClass} h-1/2 origin-bottom z-10`}
                 style={{ transform: `translateX(-50%) rotate(${sliceCenterAngle}deg)` }}
               >
-                <div className="w-full h-[80px] sm:h-[105px] md:h-[125px] lg:h-[145px] flex flex-col items-center justify-start pt-2 sm:pt-4 lg:pt-6 px-1">
+                {/* 
+                  Perubahan Utama: 
+                  - Padding atas (pt) dikurangi agar teks mepet ke pinggir luar.
+                  - Jarak (mt) antara teks dan gambar diperbesar agar gambar jatuh di area tengah segitiga.
+                */}
+                <div className="w-full h-full flex flex-col items-center justify-start pt-2 sm:pt-3 md:pt-4 px-1">
                   
-                  {item.imageUrl ? (
-                      <img src={item.imageUrl} alt={item.name} className={`${imageSizeClass} object-contain drop-shadow-[0_6px_8px_rgba(0,0,0,0.9)]`} />
-                  ) : (
-                      <div className={`${imageSizeClass} bg-white/10 rounded-xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.5),0_2px_4px_rgba(255,255,255,0.2)] flex items-center justify-center border border-white/20`}>
-                        <span className="text-white/40 text-[6px] sm:text-[8px]">No</span>
-                      </div>
-                  )}
-
-                  <div className="text-center mt-1 sm:mt-2 w-full">
-                    <h3 className={`text-white font-black ${textSizeClass} leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,1)] line-clamp-2`}>
+                  {/* Teks Hadiah (Melengkung di pinggir) */}
+                  <div className="text-center w-full mb-2 sm:mb-4 lg:mb-6 px-2">
+                    <h3 className={`text-white font-black ${textSizeClass} leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,1)] uppercase tracking-wider line-clamp-2`}
+                        style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8), -1px -1px 0 rgba(0,0,0,0.5)' }}>
                       {item.name}
                     </h3>
                   </div>
+
+                  {/* Gambar (Di tengah segitiga) */}
+                  {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.name} className={`${imageSizeClass} object-contain drop-shadow-[0_8px_10px_rgba(0,0,0,0.9)]`} />
+                  ) : (
+                      <div className={`${imageSizeClass} bg-white/10 rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,0.5),0_2px_4px_rgba(255,255,255,0.2)] flex items-center justify-center border border-white/20`}>
+                        <span className="text-white/40 font-bold text-[8px] sm:text-xs">No img</span>
+                      </div>
+                  )}
 
                 </div>
               </div>
@@ -184,23 +195,18 @@ const SpinWheel = forwardRef<SpinWheelRef, SpinWheelProps>(({ items, onWin, onSp
           })}
         </motion.div>
 
-        {/* Lubang Donat Tengah (Glow Merah & 3D Hub) */}
-        <div className="absolute z-30 w-[160px] h-[160px] sm:w-[240px] sm:h-[240px] md:w-[300px] md:h-[300px] lg:w-[360px] lg:h-[360px] bg-gradient-to-br from-[#2a0505] to-[#000000] rounded-full shadow-[inset_0_15px_30px_rgba(255,255,255,0.05),inset_0_-10px_30px_rgba(0,0,0,0.9),0_10px_30px_rgba(0,0,0,0.8)] border-[4px] sm:border-[8px] md:border-[10px] lg:border-[12px] border-[#3a0505] flex flex-col items-center justify-center p-2 sm:p-4">
-           <div className="flex flex-col items-center justify-center w-full max-w-[120px] sm:max-w-[180px] md:max-w-[220px] lg:max-w-[240px] h-full">
-             
-             <div className="bg-red-950 border border-red-800 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full flex items-center gap-1 sm:gap-1.5 mb-4 sm:mb-6 lg:mb-8 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5),0_2px_4px_rgba(255,255,255,0.1)]">
-                <Hexagon size={10} fill="#ef4444" className="text-red-400 sm:w-[14px] sm:h-[14px]" />
-                <span className="text-white font-black text-[7px] sm:text-xs lg:text-sm tracking-widest">MYSEHATI</span>
-             </div>
-             
-             <button 
-                onClick={onSpinClick}
-                disabled={isSpinning}
-                className="w-full py-2 sm:py-3 lg:py-4 rounded-lg sm:rounded-xl bg-gradient-to-br from-red-500 via-red-600 to-rose-900 text-white font-black text-[8px] sm:text-xs lg:text-sm uppercase tracking-widest shadow-[inset_0_2px_2px_rgba(255,255,255,0.4),0_10px_20px_rgba(225,29,72,0.6)] hover:shadow-[inset_0_2px_2px_rgba(255,255,255,0.6),0_12px_25px_rgba(225,29,72,0.8)] hover:scale-105 active:scale-95 active:shadow-[inset_0_5px_10px_rgba(0,0,0,0.5),0_0_0_rgba(225,29,72,0)] transition-all disabled:opacity-50 border sm:border-[3px] border-red-400/80"
-              >
-                {isSpinning ? 'Membuka...' : 'PUTAR SEKARANG'}
-              </button>
-           </div>
+        {/* Lubang Poros Tengah & Tombol Putar (Diperkecil menjadi bulat) */}
+        <div className="absolute z-30 w-[80px] h-[80px] sm:w-[100px] sm:h-[100px] md:w-[120px] md:h-[120px] lg:w-[140px] lg:h-[140px] bg-gradient-to-br from-[#2a0505] to-[#000000] rounded-full shadow-[inset_0_15px_30px_rgba(255,255,255,0.05),inset_0_-10px_30px_rgba(0,0,0,0.9),0_10px_30px_rgba(0,0,0,0.8)] border-[3px] sm:border-[5px] md:border-[6px] border-[#3a0505] flex flex-col items-center justify-center p-2">
+           
+           <button 
+              onClick={onSpinClick}
+              disabled={isSpinning}
+              className="w-full h-full rounded-full bg-gradient-to-br from-red-500 via-red-600 to-rose-900 text-white font-black flex flex-col items-center justify-center gap-0.5 sm:gap-1 shadow-[inset_0_2px_5px_rgba(255,255,255,0.4),0_10px_20px_rgba(225,29,72,0.6)] hover:shadow-[inset_0_2px_5px_rgba(255,255,255,0.6),0_12px_25px_rgba(225,29,72,0.8)] hover:scale-105 active:scale-95 active:shadow-[inset_0_5px_10px_rgba(0,0,0,0.5),0_0_0_rgba(225,29,72,0)] transition-all disabled:opacity-50 border sm:border-2 border-red-400/80"
+            >
+              <Play fill="currentColor" className="w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8 ml-1" />
+              <span className="text-[9px] sm:text-[11px] md:text-sm tracking-widest drop-shadow-md">SPIN</span>
+            </button>
+            
         </div>
       </div>
     </div>
