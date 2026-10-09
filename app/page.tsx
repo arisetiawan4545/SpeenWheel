@@ -15,25 +15,21 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const router = useRouter(); 
   
-  // Data State
   const [programs, setPrograms] = useState<SpinProgram[]>([]);
   const [selectedProgramId, setSelectedProgramId] = useState<string>("");
   const [items, setItems] = useState<Prize[]>([]);
   const [history, setHistory] = useState<SpinHistory[]>([]);
   
-  // Modal & Player State
   const [winnerPrize, setWinnerPrize] = useState<Prize | null>(null);
   const [showPlayerForm, setShowPlayerForm] = useState(false);
   const [player, setPlayer] = useState<Player>({ name: "", whatsapp: "" });
   
-  // Admin Login State
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [adminName, setAdminName] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // Referensi ke Komponen Roda
   const wheelRef = useRef<SpinWheelRef>(null);
 
   useEffect(() => {
@@ -110,7 +106,6 @@ export default function Home() {
     setPlayer({ name: "", whatsapp: "" }); 
   };
 
-  // FUNGSI LOGIN ADMIN
   const handleAdminAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError("");
@@ -121,7 +116,6 @@ export default function Home() {
       const snap = await getDocs(q);
       
       if (!snap.empty) {
-        // Berhasil login
         sessionStorage.setItem("isAdmin", "true"); 
         router.push("/admin"); 
       } else {
@@ -138,34 +132,33 @@ export default function Home() {
   if (!mounted) return null;
 
   return (
-    <main className="min-h-screen bg-[#0f172a] text-slate-200 flex flex-col font-sans relative overflow-x-hidden selection:bg-indigo-500/30">
+    // Penambahan Background Image bg-merah.jpg di tag main
+    <main className="min-h-screen bg-[#0a0000] text-slate-100 flex flex-col font-sans relative overflow-x-hidden selection:bg-red-500/30 bg-[url('/bg-merah.jpg')] bg-cover bg-center bg-fixed">
       
-      {/* Background Ornaments */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[300px] sm:h-[500px] bg-indigo-600/10 blur-[100px] sm:blur-[150px] rounded-full z-0 pointer-events-none"></div>
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none z-0"></div>
+      {/* Background Ornaments (Merah) */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[300px] sm:h-[500px] bg-red-600/20 blur-[100px] sm:blur-[150px] rounded-full z-0 pointer-events-none"></div>
 
       {/* HEADER */}
-      <header className="w-full px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center bg-[#0f172a]/80 backdrop-blur-xl border-b border-slate-800 z-50 sticky top-0 shadow-lg shadow-black/20">
+      <header className="w-full px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center bg-black/60 backdrop-blur-xl border-b border-red-900/50 z-50 sticky top-0 shadow-[0_4px_30px_rgba(225,29,72,0.1)]">
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="relative group">
-             <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 to-violet-500 rounded-full blur opacity-40 group-hover:opacity-75 transition duration-500"></div>
-             <img src="/logo.png" alt="Logo" className="relative h-9 w-9 sm:h-11 sm:w-11 bg-slate-900 rounded-full p-1.5 border border-slate-700 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
+             <div className="absolute -inset-1 bg-gradient-to-r from-red-600 to-rose-500 rounded-full blur opacity-50 group-hover:opacity-100 transition duration-500"></div>
+             <img src="/logo.png" alt="Logo" className="relative h-9 w-9 sm:h-11 sm:w-11 bg-black rounded-full p-1.5 border border-red-800 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
           </div>
           <div>
-            <h1 className="text-base sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white flex items-center gap-1 sm:gap-2">MySehati Spin Wheel</h1>
-            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-indigo-400 font-medium">
+            <h1 className="text-base sm:text-xl font-bold text-white flex items-center gap-1 sm:gap-2 tracking-wide">MySehati <span className="font-light">Spin Wheel</span></h1>
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-green-400 font-medium mt-0.5">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-indigo-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-green-500"></span>
               </span> 
-              <span className="hidden sm:inline">Database Online</span>
-              <span className="sm:hidden">Online</span>
+              <span className="hidden sm:inline text-slate-300">Database Online</span>
+              <span className="sm:hidden text-slate-300">Online</span>
             </div>
           </div>
         </div>
         
-        {/* TOMBOL ADMIN DIUBAH MENJADI TOMBOL POP-UP */}
-        <button onClick={() => setShowAdminLogin(true)} className="text-slate-300 hover:text-white flex items-center gap-2 bg-slate-800/50 hover:bg-slate-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-slate-700 transition-all shadow-sm">
+        <button onClick={() => setShowAdminLogin(true)} className="text-slate-300 hover:text-white flex items-center gap-2 bg-black/50 hover:bg-red-950/50 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-red-900/50 hover:border-red-500 transition-all shadow-sm">
           <Settings size={14} className="sm:w-[16px] sm:h-[16px]" /> <span className="text-xs sm:text-sm font-medium">Admin</span>
         </button>
       </header>
@@ -174,46 +167,46 @@ export default function Home() {
         
         {/* DROPDOWN PILIHAN PROGRAM */}
         <div className="mb-6 sm:mb-8 flex flex-col items-center z-20 relative w-full px-4">
-           <label className="text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-1.5 sm:mb-2 flex items-center gap-1.5 sm:gap-2">
-             <Sparkles size={12} className="text-indigo-400 sm:w-[14px] sm:h-[14px]" /> Pilih Kategori Event
+           <label className="text-slate-300 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-1.5 sm:mb-2 flex items-center gap-1.5 sm:gap-2 drop-shadow-md">
+             <Sparkles size={12} className="text-rose-400 sm:w-[14px] sm:h-[14px]" /> Pilih Kategori Event
            </label>
            <div className="relative w-full max-w-[280px] sm:max-w-[320px]">
              <select 
                value={selectedProgramId} 
                onChange={(e) => setSelectedProgramId(e.target.value)}
-               className="bg-slate-800/80 backdrop-blur-md border border-indigo-500/50 rounded-xl w-full px-4 py-2.5 sm:px-5 sm:py-3 text-sm sm:text-base text-white font-bold outline-none focus:ring-2 focus:ring-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.2)] text-center appearance-none cursor-pointer truncate pr-10"
+               className="bg-black/60 backdrop-blur-md border border-red-500/50 rounded-xl w-full px-4 py-2.5 sm:px-5 sm:py-3 text-sm sm:text-base text-white font-bold outline-none focus:ring-2 focus:ring-red-500 shadow-[0_0_20px_rgba(225,29,72,0.2)] text-center appearance-none cursor-pointer truncate pr-10"
              >
                {programs.map(p => (
-                 <option key={p.id} value={p.id}>{p.name}</option>
+                 <option key={p.id} value={p.id} className="bg-slate-900">{p.name}</option>
                ))}
-               {programs.length === 0 && <option value="">Belum ada program...</option>}
+               {programs.length === 0 && <option value="" className="bg-slate-900">Belum ada program...</option>}
              </select>
-             <ChevronDown size={18} className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-indigo-400 pointer-events-none sm:w-[20px] sm:h-[20px]" />
+             <ChevronDown size={18} className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-red-400 pointer-events-none sm:w-[20px] sm:h-[20px]" />
            </div>
         </div>
 
         {/* RODA SPIN */}
-        <div className="mb-10 sm:mb-16 relative w-full flex justify-center mt-4">
+        <div className="mb-10 sm:mb-16 relative w-full flex justify-center mt-4 drop-shadow-[0_0_30px_rgba(225,29,72,0.3)]">
           <SpinWheel ref={wheelRef} items={items} onSpinClick={handleSpinRequest} onWin={handleWin} />
         </div>
 
         {/* POPUP LOGIN ADMIN */}
         {showAdminLogin && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
             <motion.div 
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              className="bg-slate-900 border border-rose-500/50 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl w-full max-w-sm shadow-[0_0_50px_rgba(244,63,94,0.2)] relative overflow-hidden"
+              className="bg-black/90 border border-red-500/50 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl w-full max-w-sm shadow-[0_0_50px_rgba(225,29,72,0.3)] relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-rose-500/10 blur-2xl sm:blur-3xl rounded-full"></div>
+              <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-red-600/20 blur-2xl sm:blur-3xl rounded-full"></div>
               
               <h3 className="text-xl sm:text-2xl font-black text-white mb-1 sm:mb-2 relative z-10 flex items-center gap-2">
-                <Lock size={24} className="text-rose-500" /> Area Terlarang
+                <Lock size={24} className="text-red-500" /> Area Terlarang
               </h3>
               <p className="text-slate-400 text-[10px] sm:text-xs md:text-sm mb-5 sm:mb-6 relative z-10 leading-tight">Hanya admin yang memiliki akses ke halaman ini.</p>
               
               {loginError && (
-                <div className="mb-4 bg-rose-500/10 border border-rose-500/50 text-rose-400 text-xs p-3 rounded-lg text-center font-bold">
+                <div className="mb-4 bg-red-500/10 border border-red-500/50 text-red-400 text-xs p-3 rounded-lg text-center font-bold">
                   {loginError}
                 </div>
               )}
@@ -221,16 +214,16 @@ export default function Home() {
               <form onSubmit={handleAdminAuth} className="relative z-10">
                 <div className="mb-3 sm:mb-4">
                   <label className="block text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">Nama Admin</label>
-                  <input type="text" required value={adminName} onChange={e => setAdminName(e.target.value)} className="bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 outline-none text-white w-full text-xs sm:text-sm placeholder-slate-500 font-medium focus:border-rose-500 transition-colors" placeholder="Masukkan nama" />
+                  <input type="text" required value={adminName} onChange={e => setAdminName(e.target.value)} className="bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-3 outline-none text-white w-full text-xs sm:text-sm placeholder-slate-600 font-medium focus:border-red-500 transition-colors" placeholder="Masukkan nama" />
                 </div>
                 <div className="mb-6 sm:mb-8">
                   <label className="block text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">Password</label>
-                  <input type="password" required value={adminPassword} onChange={e => setAdminPassword(e.target.value)} className="bg-slate-800/80 border border-slate-700 rounded-xl px-4 py-3 outline-none text-white w-full text-xs sm:text-sm placeholder-slate-500 font-medium focus:border-rose-500 transition-colors" placeholder="••••••••" />
+                  <input type="password" required value={adminPassword} onChange={e => setAdminPassword(e.target.value)} className="bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-3 outline-none text-white w-full text-xs sm:text-sm placeholder-slate-600 font-medium focus:border-red-500 transition-colors" placeholder="••••••••" />
                 </div>
                 
                 <div className="flex gap-2 sm:gap-3">
-                   <button type="button" onClick={() => {setShowAdminLogin(false); setLoginError("");}} className="flex-1 py-2.5 sm:py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl font-bold text-xs sm:text-sm transition-all border border-slate-700">Batal</button>
-                   <button type="submit" disabled={isLoggingIn} className="flex-1 py-2.5 sm:py-3.5 bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white rounded-xl font-bold text-xs sm:text-sm transition-all shadow-lg active:scale-95 uppercase tracking-wider disabled:opacity-50">
+                   <button type="button" onClick={() => {setShowAdminLogin(false); setLoginError("");}} className="flex-1 py-2.5 sm:py-3.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white rounded-xl font-bold text-xs sm:text-sm transition-all border border-slate-800">Batal</button>
+                   <button type="submit" disabled={isLoggingIn} className="flex-1 py-2.5 sm:py-3.5 bg-gradient-to-r from-red-600 to-rose-700 hover:from-rose-600 hover:to-rose-500 text-white rounded-xl font-bold text-xs sm:text-sm transition-all shadow-[0_4px_20px_rgba(225,29,72,0.4)] active:scale-95 uppercase tracking-wider disabled:opacity-50">
                      {isLoggingIn ? "Cek..." : "Masuk"}
                    </button>
                 </div>
@@ -241,36 +234,36 @@ export default function Home() {
 
         {/* MODAL REGISTRASI NAMA & WA */}
         {showPlayerForm && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
             <motion.div 
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              className="bg-slate-900 border border-indigo-500/50 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl w-full max-w-sm shadow-[0_0_50px_rgba(99,102,241,0.3)] relative overflow-hidden"
+              className="bg-black/90 border border-red-500/50 p-5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl w-full max-w-sm shadow-[0_0_50px_rgba(225,29,72,0.4)] relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-indigo-500/10 blur-2xl sm:blur-3xl rounded-full"></div>
+              <div className="absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-red-600/20 blur-2xl sm:blur-3xl rounded-full"></div>
               
-              <h3 className="text-xl sm:text-2xl font-black text-white mb-1 sm:mb-2 relative z-10">Isi Data Dulu Yuk!</h3>
-              <p className="text-slate-400 text-[10px] sm:text-xs md:text-sm mb-5 sm:mb-6 relative z-10 leading-tight">Masukkan nama dan No. WhatsApp untuk klaim hadiahmu nanti.</p>
+              <h3 className="text-xl sm:text-2xl font-black text-white mb-1 sm:mb-2 relative z-10">Klaim Hadiahmu!</h3>
+              <p className="text-slate-400 text-[10px] sm:text-xs md:text-sm mb-5 sm:mb-6 relative z-10 leading-tight">Masukkan nama dan No. WhatsApp untuk memutar roda.</p>
               
               <form onSubmit={submitPlayerForm} className="relative z-10">
                 <div className="mb-3 sm:mb-4">
                   <label className="block text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">Nama Lengkap</label>
-                  <div className="flex items-center bg-slate-800/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 border border-slate-700 focus-within:border-indigo-500 transition-colors shadow-inner">
-                    <User size={14} className="text-indigo-400 mr-2 sm:mr-3 sm:w-[16px] sm:h-[16px]" />
-                    <input type="text" required value={player.name} onChange={e => setPlayer({...player, name: e.target.value})} className="bg-transparent border-none outline-none text-white w-full text-xs sm:text-sm placeholder-slate-500 font-medium" placeholder="Misal: Budi Santoso" />
+                  <div className="flex items-center bg-slate-900/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 border border-slate-800 focus-within:border-red-500 transition-colors shadow-inner">
+                    <User size={14} className="text-rose-400 mr-2 sm:mr-3 sm:w-[16px] sm:h-[16px]" />
+                    <input type="text" required value={player.name} onChange={e => setPlayer({...player, name: e.target.value})} className="bg-transparent border-none outline-none text-white w-full text-xs sm:text-sm placeholder-slate-600 font-medium" placeholder="Misal: Budi Santoso" />
                   </div>
                 </div>
                 <div className="mb-6 sm:mb-8">
                   <label className="block text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5 sm:mb-2">No. WhatsApp</label>
-                  <div className="flex items-center bg-slate-800/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 border border-slate-700 focus-within:border-indigo-500 transition-colors shadow-inner">
-                    <Phone size={14} className="text-emerald-400 mr-2 sm:mr-3 sm:w-[16px] sm:h-[16px]" />
-                    <input type="tel" required value={player.whatsapp} onChange={e => setPlayer({...player, whatsapp: e.target.value})} className="bg-transparent border-none outline-none text-white w-full text-xs sm:text-sm placeholder-slate-500 font-medium" placeholder="Misal: 081234567890" />
+                  <div className="flex items-center bg-slate-900/80 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 border border-slate-800 focus-within:border-red-500 transition-colors shadow-inner">
+                    <Phone size={14} className="text-rose-400 mr-2 sm:mr-3 sm:w-[16px] sm:h-[16px]" />
+                    <input type="tel" required value={player.whatsapp} onChange={e => setPlayer({...player, whatsapp: e.target.value})} className="bg-transparent border-none outline-none text-white w-full text-xs sm:text-sm placeholder-slate-600 font-medium" placeholder="Misal: 081234567890" />
                   </div>
                 </div>
                 
                 <div className="flex gap-2 sm:gap-3">
-                   <button type="button" onClick={() => setShowPlayerForm(false)} className="flex-1 py-2.5 sm:py-3.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl font-bold text-xs sm:text-sm transition-all border border-slate-700">Batal</button>
-                   <button type="submit" className="flex-1 py-2.5 sm:py-3.5 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-xl font-bold text-xs sm:text-sm transition-all shadow-[0_0_20px_rgba(79,70,229,0.4)] active:scale-95 uppercase tracking-wider">Mulai Putar!</button>
+                   <button type="button" onClick={() => setShowPlayerForm(false)} className="flex-1 py-2.5 sm:py-3.5 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white rounded-xl font-bold text-xs sm:text-sm transition-all border border-slate-800">Batal</button>
+                   <button type="submit" className="flex-1 py-2.5 sm:py-3.5 bg-gradient-to-r from-red-600 to-rose-700 hover:from-rose-600 hover:to-rose-500 text-white rounded-xl font-bold text-xs sm:text-sm transition-all shadow-[0_4px_20px_rgba(225,29,72,0.5)] active:scale-95 uppercase tracking-wider">Mulai Putar!</button>
                 </div>
               </form>
             </motion.div>
@@ -280,60 +273,59 @@ export default function Home() {
         <PrizeModal winner={winnerPrize} onClose={() => setWinnerPrize(null)} />
 
         {/* KATALOG HADIAH */}
-        <div className="w-full mb-10 sm:mb-12 mt-8 sm:mt-12 px-2 max-w-4xl">
+        <div className="w-full mb-10 sm:mb-12 mt-8 sm:mt-12 px-2 max-w-4xl relative z-20">
           <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-            <div className="h-px bg-gradient-to-r from-transparent to-slate-700 flex-1 max-w-[80px] sm:max-w-[100px]"></div>
-            <Gift size={16} className="text-slate-400 sm:w-[18px] sm:h-[18px]" />
-            <h2 className="text-xs sm:text-sm font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] text-slate-300">Daftar Hadiah</h2>
-            <div className="h-px bg-gradient-to-l from-transparent to-slate-700 flex-1 max-w-[80px] sm:max-w-[100px]"></div>
+            <div className="h-px bg-gradient-to-r from-transparent to-red-600 flex-1 max-w-[80px] sm:max-w-[100px]"></div>
+            <Gift size={16} className="text-red-400 sm:w-[18px] sm:h-[18px]" />
+            <h2 className="text-xs sm:text-sm font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white drop-shadow-lg">Daftar Hadiah</h2>
+            <div className="h-px bg-gradient-to-l from-transparent to-red-600 flex-1 max-w-[80px] sm:max-w-[100px]"></div>
           </div>
           
-          {/* Perubahan pada div pembungkus grid di sini */}
           <div className="grid grid-cols-3 gap-2 sm:gap-4 md:grid-cols-4 lg:grid-cols-5">
             {items.map((item) => (
-              <div key={item.id} className="w-full bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-xl sm:rounded-2xl p-2 sm:p-4 flex flex-col items-center hover:bg-slate-800 hover:border-slate-600 transition-all group shadow-lg">
+              <div key={item.id} className="w-full bg-black/40 backdrop-blur-md border border-red-500/30 rounded-xl sm:rounded-2xl p-2 sm:p-4 flex flex-col items-center hover:bg-black/70 hover:border-red-500 transition-all group shadow-[0_4px_20px_rgba(225,29,72,0.15)]">
                 <div className="relative w-12 h-12 sm:w-16 sm:h-16 mb-2 sm:mb-3 flex items-center justify-center">
-                   <div className="absolute inset-0 bg-white/5 rounded-full blur-md group-hover:bg-white/10 transition-colors" style={{ backgroundColor: item.color + '40' }}></div>
-                   {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="relative z-10 w-8 h-8 sm:w-12 sm:h-12 object-contain drop-shadow-xl group-hover:scale-110 transition-transform" /> : <Gift className="relative z-10 text-slate-500 w-6 h-6 sm:w-8 sm:h-8" />}
+                   <div className="absolute inset-0 bg-white/5 rounded-full blur-md group-hover:bg-red-500/20 transition-colors" style={{ backgroundColor: item.color + '40' }}></div>
+                   {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="relative z-10 w-8 h-8 sm:w-12 sm:h-12 object-contain drop-shadow-xl group-hover:scale-110 transition-transform" /> : <Gift className="relative z-10 text-red-300 w-6 h-6 sm:w-8 sm:h-8" />}
                 </div>
-                <h3 className="text-[10px] sm:text-sm font-bold text-center text-slate-200 leading-tight mb-2 truncate w-full">{item.name}</h3>
+                <h3 className="text-[10px] sm:text-sm font-bold text-center text-slate-100 leading-tight mb-2 truncate w-full">{item.name}</h3>
                 
                 <div className="flex flex-col items-center w-full mt-auto mb-1">
-                   <div className="text-[8px] sm:text-[10px] uppercase font-bold tracking-widest text-indigo-200 bg-indigo-900/60 px-3 py-1 rounded-md border border-indigo-500/40 shadow-sm">
+                   <div className="text-[8px] sm:text-[10px] uppercase font-bold tracking-widest text-red-100 bg-red-950/80 px-3 py-1 rounded-md border border-red-500/50 shadow-sm">
                      🎁 REWARD
                    </div>
                 </div>
               </div>
             ))}
-            {items.length === 0 && <div className="col-span-3 text-center text-xs sm:text-sm text-slate-500 py-4">Belum ada item untuk program ini.</div>}
+            {items.length === 0 && <div className="col-span-3 text-center text-xs sm:text-sm text-slate-400 py-4">Belum ada item untuk program ini.</div>}
           </div>
         </div>
 
         {/* LIVE FEED PEMENANG */}
-        <div className="w-full mt-4">
+        <div className="w-full mt-4 relative z-20">
           <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-            <div className="h-px bg-gradient-to-r from-transparent to-slate-700 flex-1 max-w-[80px] sm:max-w-[100px]"></div>
+            <div className="h-px bg-gradient-to-r from-transparent to-red-600 flex-1 max-w-[80px] sm:max-w-[100px]"></div>
             <Zap size={16} className="text-amber-400 sm:w-[18px] sm:h-[18px]" />
-            <h2 className="text-xs sm:text-sm font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] text-slate-300">Live Feed Pemenang</h2>
-            <div className="h-px bg-gradient-to-l from-transparent to-slate-700 flex-1 max-w-[80px] sm:max-w-[100px]"></div>
+            <h2 className="text-xs sm:text-sm font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white drop-shadow-lg">Live Feed Pemenang</h2>
+            <div className="h-px bg-gradient-to-l from-transparent to-red-600 flex-1 max-w-[80px] sm:max-w-[100px]"></div>
           </div>
 
           <div className="flex flex-wrap justify-center gap-3 sm:gap-4 pb-6 pt-2 px-1">
             {history.length === 0 ? (
-              <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl px-6 py-5 sm:px-8 sm:py-6 text-center w-full max-w-sm mx-auto">
-                 <History size={20} className="mx-auto text-slate-600 mb-2 sm:w-6 sm:h-6" />
+              <div className="bg-black/40 backdrop-blur-sm border border-red-900/50 rounded-xl px-6 py-5 sm:px-8 sm:py-6 text-center w-full max-w-sm mx-auto">
+                 <History size={20} className="mx-auto text-red-500/50 mb-2 sm:w-6 sm:h-6" />
                  <p className="text-slate-400 text-xs sm:text-sm font-medium">Belum ada pemenang di database.</p>
               </div>
             ) : (
               history.map((h, i) => (
-                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }} key={h.id || i} className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-md border border-slate-700/50 hover:border-slate-500 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 sm:gap-4 w-full max-w-[280px] sm:max-w-[320px] shadow-lg group transition-colors">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center p-1.5 sm:p-2 relative overflow-hidden flex-shrink-0">
-                       <Gift className="relative z-10 text-indigo-400 w-5 h-5 sm:w-6 sm:h-6" />
+                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }} key={h.id || i} className="bg-gradient-to-br from-black/60 to-black/80 backdrop-blur-md border border-red-900/50 hover:border-red-500 rounded-xl sm:rounded-2xl p-2.5 sm:p-3 flex items-center gap-3 sm:gap-4 w-full max-w-[280px] sm:max-w-[320px] shadow-[0_4px_15px_rgba(225,29,72,0.1)] group transition-colors">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-red-950/50 border border-red-800 flex items-center justify-center p-1.5 sm:p-2 relative overflow-hidden flex-shrink-0">
+                       <Gift className="relative z-10 text-rose-400 w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
                     <div className="overflow-hidden flex-1 min-w-0 text-left">
-                      <p className="text-[9px] sm:text-[10px] text-slate-400 font-bold mb-0.5 uppercase tracking-widest truncate">{h.player?.name || 'Seseorang'}</p>
+                      <p className="text-[9px] sm:text-[10px] text-red-300 font-bold mb-0.5 uppercase tracking-widest truncate">{h.player?.name || 'Seseorang'}</p>
                       <p className="text-white font-bold text-xs sm:text-sm truncate leading-tight">{h.prizeName}</p>
-                      <p className="text-[8px] sm:text-[9px] text-slate-500 mt-0.5 sm:mt-1 truncate">di {h.programName}</p>
+                      <p className="text-[8px] sm:text-[9px] text-slate-400 mt-0.5 sm:mt-1 truncate">di {h.programName}</p>
                     </div>
                   </motion.div>
                 )
