@@ -133,7 +133,7 @@ export default function Home() {
 
   return (
     // Penambahan Background Image bg-merah.jpg di tag main
-    <main className="min-h-screen bg-[#0a0000] text-slate-100 flex flex-col font-sans relative overflow-x-hidden selection:bg-red-500/30 bg-[url('/bg-merah.jpg')] bg-cover bg-center bg-fixed">
+    <main className="min-h-screen bg-[#0a0000] text-slate-100 flex flex-col font-sans relative overflow-x-hidden selection:bg-red-500/30 bg-[url('/bg-merah.png')] bg-cover bg-center bg-fixed">
       
       {/* Background Ornaments (Merah) */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[300px] sm:h-[500px] bg-red-600/20 blur-[100px] sm:blur-[150px] rounded-full z-0 pointer-events-none"></div>
