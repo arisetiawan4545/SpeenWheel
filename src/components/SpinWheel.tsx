@@ -5,7 +5,7 @@ import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Prize } from '../types';
-import { Hexagon, Sparkles } from 'lucide-react';
+import { Hexagon } from 'lucide-react';
 
 export interface SpinWheelRef {
   startSpin: () => void;
@@ -82,20 +82,24 @@ const SpinWheel = forwardRef<SpinWheelRef, SpinWheelProps>(({ items, onWin, onSp
   }).join(', ');
 
   const itemCount = items.length;
+  
+  // Ukuran gambar diperbesar
   const imageSizeClass = 
-    itemCount > 8 ? 'w-4 h-4 sm:w-6 sm:h-6 md:w-8 md:h-8' : 
-    itemCount > 5 ? 'w-5 h-5 sm:w-7 sm:h-7 md:w-10 md:h-10' : 
-    'w-6 h-6 sm:w-9 sm:h-9 md:w-12 md:h-12';
+    itemCount > 8 ? 'w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 lg:w-12 lg:h-12' : 
+    itemCount > 5 ? 'w-8 h-8 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16' : 
+    'w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20';
 
+  // Ukuran teks diperbesar
   const textSizeClass = 
-    itemCount > 8 ? 'text-[6px] sm:text-[8px] md:text-[9px]' : 
-    itemCount > 5 ? 'text-[7px] sm:text-[9px] md:text-[10px]' : 
-    'text-[8px] sm:text-[10px] md:text-xs';
+    itemCount > 8 ? 'text-[7px] sm:text-[9px] md:text-[11px] lg:text-xs' : 
+    itemCount > 5 ? 'text-[9px] sm:text-[11px] md:text-sm lg:text-base' : 
+    'text-[11px] sm:text-xs md:text-base lg:text-lg';
 
+  // Kontainer teks & gambar diperlebar agar tidak terpotong
   const containerWidthClass = 
-    itemCount > 8 ? 'w-10 sm:w-14 md:w-18' : 
-    itemCount > 5 ? 'w-14 sm:w-20 md:w-24' : 
-    'w-20 sm:w-28 md:w-36';
+    itemCount > 8 ? 'w-14 sm:w-20 md:w-24' : 
+    itemCount > 5 ? 'w-20 sm:w-28 md:w-32' : 
+    'w-28 sm:w-36 md:w-44';
 
   if (items.length === 0) {
     return <div className="text-white text-center p-4">Silakan pilih program dan tambahkan hadiah.</div>;
@@ -128,7 +132,7 @@ const SpinWheel = forwardRef<SpinWheelRef, SpinWheelProps>(({ items, onWin, onSp
                 className={`absolute top-0 left-1/2 ${containerWidthClass} h-1/2 origin-bottom z-10`}
                 style={{ transform: `translateX(-50%) rotate(${sliceCenterAngle}deg)` }}
               >
-                <div className="w-full h-[80px] sm:h-[105px] md:h-[125px] lg:h-[145px] flex flex-col items-center justify-start pt-1.5 sm:pt-3 lg:pt-4 px-1">
+                <div className="w-full h-[80px] sm:h-[105px] md:h-[125px] lg:h-[145px] flex flex-col items-center justify-start pt-2 sm:pt-4 lg:pt-6 px-1">
                   
                   {item.imageUrl ? (
                       <img src={item.imageUrl} alt={item.name} className={`${imageSizeClass} object-contain drop-shadow-[0_4px_6px_rgba(0,0,0,0.8)]`} />
@@ -139,11 +143,10 @@ const SpinWheel = forwardRef<SpinWheelRef, SpinWheelProps>(({ items, onWin, onSp
                   )}
 
                   {/* Teks Hadiah */}
-                  <div className="text-center mt-1 w-full">
+                  <div className="text-center mt-1 sm:mt-2 w-full">
                     <h3 className={`text-white font-black ${textSizeClass} leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,1)] line-clamp-2`}>
                       {item.name}
                     </h3>
-                    {/* Teks persentase drop rate sengaja dihapus di sini */}
                   </div>
 
                 </div>
@@ -154,23 +157,19 @@ const SpinWheel = forwardRef<SpinWheelRef, SpinWheelProps>(({ items, onWin, onSp
 
         {/* Lubang Donat Tengah */}
         <div className="absolute z-20 w-[160px] h-[160px] sm:w-[240px] sm:h-[240px] md:w-[300px] md:h-[300px] lg:w-[360px] lg:h-[360px] bg-[#0f172a] rounded-full shadow-[inset_0_10px_30px_rgba(0,0,0,0.8),0_0_30px_rgba(0,0,0,0.8)] border-[6px] sm:border-[8px] md:border-[10px] lg:border-[12px] border-[#1e293b] flex flex-col items-center justify-center p-2 sm:p-4">
-           <div className="flex flex-col items-center w-full max-w-[120px] sm:max-w-[180px] md:max-w-[220px] lg:max-w-[240px]">
-             <div className="bg-slate-800/80 border border-slate-700 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full flex items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-3 lg:mb-4 shadow-inner">
+           <div className="flex flex-col items-center justify-center w-full max-w-[120px] sm:max-w-[180px] md:max-w-[220px] lg:max-w-[240px] h-full">
+             
+             {/* Label MYSEHATI dengan margin bawah yang disesuaikan */}
+             <div className="bg-slate-800/80 border border-slate-700 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full flex items-center gap-1 sm:gap-1.5 mb-4 sm:mb-6 lg:mb-8 shadow-inner">
                 <Hexagon size={10} fill="#fbbf24" className="text-amber-500 sm:w-[14px] sm:h-[14px]" />
                 <span className="text-amber-400 font-black text-[7px] sm:text-xs lg:text-sm tracking-widest">MYSEHATI</span>
              </div>
-             <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-xl sm:rounded-2xl p-1.5 sm:p-3 lg:p-4 w-full text-center shadow-lg mb-2 sm:mb-4 lg:mb-5">
-                <h2 className="text-white font-bold text-[9px] sm:text-sm lg:text-lg flex items-center justify-center gap-1 sm:gap-2 mb-0.5 sm:mb-1">
-                  <Sparkles size={12} className="text-indigo-400 sm:w-[16px] sm:h-[16px]" /> Premium Chest
-                </h2>
-                <p className="text-slate-400 text-[6px] sm:text-[10px] lg:text-xs leading-relaxed px-1">
-                  Dapatkan hadiah eksklusif.
-                </p>
-             </div>
+             
+             {/* Tombol Putar */}
              <button 
                 onClick={onSpinClick}
                 disabled={isSpinning}
-                className="w-full py-1.5 sm:py-2.5 lg:py-3.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-indigo-500 to-blue-600 text-white font-black text-[7px] sm:text-xs lg:text-sm uppercase tracking-widest shadow-[0_4px_20px_rgba(79,70,229,0.4)] hover:shadow-[0_8px_30px_rgba(79,70,229,0.6)] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 border sm:border-2 border-indigo-400/30"
+                className="w-full py-2 sm:py-3 lg:py-4 rounded-lg sm:rounded-xl bg-gradient-to-r from-indigo-500 to-blue-600 text-white font-black text-[8px] sm:text-xs lg:text-sm uppercase tracking-widest shadow-[0_4px_20px_rgba(79,70,229,0.4)] hover:shadow-[0_8px_30px_rgba(79,70,229,0.6)] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 border sm:border-2 border-indigo-400/30"
               >
                 {isSpinning ? 'Membuka...' : 'PUTAR SEKARANG'}
               </button>

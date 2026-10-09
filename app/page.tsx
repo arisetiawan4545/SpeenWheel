@@ -13,7 +13,7 @@ import { motion } from "framer-motion";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
-  const router = useRouter(); // Tambahan untuk navigasi
+  const router = useRouter(); 
   
   // Data State
   const [programs, setPrograms] = useState<SpinProgram[]>([]);
@@ -122,8 +122,8 @@ export default function Home() {
       
       if (!snap.empty) {
         // Berhasil login
-        sessionStorage.setItem("isAdmin", "true"); // Simpan sesi di browser
-        router.push("/admin"); // Pindah ke halaman admin
+        sessionStorage.setItem("isAdmin", "true"); 
+        router.push("/admin"); 
       } else {
         setLoginError("Nama atau Password salah!");
       }
@@ -280,7 +280,7 @@ export default function Home() {
         <PrizeModal winner={winnerPrize} onClose={() => setWinnerPrize(null)} />
 
         {/* KATALOG HADIAH */}
-        <div className="w-full mb-10 sm:mb-12 mt-8 sm:mt-12 px-2">
+        <div className="w-full mb-10 sm:mb-12 mt-8 sm:mt-12 px-2 max-w-4xl">
           <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6">
             <div className="h-px bg-gradient-to-r from-transparent to-slate-700 flex-1 max-w-[80px] sm:max-w-[100px]"></div>
             <Gift size={16} className="text-slate-400 sm:w-[18px] sm:h-[18px]" />
@@ -288,9 +288,10 @@ export default function Home() {
             <div className="h-px bg-gradient-to-l from-transparent to-slate-700 flex-1 max-w-[80px] sm:max-w-[100px]"></div>
           </div>
           
-          <div className="flex flex-wrap justify-center gap-2 sm:gap-4">
+          {/* Perubahan pada div pembungkus grid di sini */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 md:grid-cols-4 lg:grid-cols-5">
             {items.map((item) => (
-              <div key={item.id} className="w-[105px] sm:w-[140px] md:w-[160px] lg:w-[180px] bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-xl sm:rounded-2xl p-2 sm:p-4 flex flex-col items-center hover:bg-slate-800 hover:border-slate-600 transition-all group shadow-lg">
+              <div key={item.id} className="w-full bg-slate-800/40 backdrop-blur-sm border border-slate-700/50 rounded-xl sm:rounded-2xl p-2 sm:p-4 flex flex-col items-center hover:bg-slate-800 hover:border-slate-600 transition-all group shadow-lg">
                 <div className="relative w-12 h-12 sm:w-16 sm:h-16 mb-2 sm:mb-3 flex items-center justify-center">
                    <div className="absolute inset-0 bg-white/5 rounded-full blur-md group-hover:bg-white/10 transition-colors" style={{ backgroundColor: item.color + '40' }}></div>
                    {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="relative z-10 w-8 h-8 sm:w-12 sm:h-12 object-contain drop-shadow-xl group-hover:scale-110 transition-transform" /> : <Gift className="relative z-10 text-slate-500 w-6 h-6 sm:w-8 sm:h-8" />}
@@ -304,7 +305,7 @@ export default function Home() {
                 </div>
               </div>
             ))}
-            {items.length === 0 && <div className="w-full text-center text-xs sm:text-sm text-slate-500 py-4">Belum ada item untuk program ini.</div>}
+            {items.length === 0 && <div className="col-span-3 text-center text-xs sm:text-sm text-slate-500 py-4">Belum ada item untuk program ini.</div>}
           </div>
         </div>
 
